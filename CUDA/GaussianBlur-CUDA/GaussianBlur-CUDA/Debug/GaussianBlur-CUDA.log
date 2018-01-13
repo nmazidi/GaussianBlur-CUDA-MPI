@@ -1,0 +1,23 @@
+﻿  Compiling CUDA source file main.cu...
+  
+  C:\Users\nmazidi\Documents\GaussianBlur-CUDA-MPI\CUDA\GaussianBlur-CUDA\GaussianBlur-CUDA>"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v8.0\bin\nvcc.exe" -gencode=arch=compute_20,code=\"sm_20,compute_20\" --use-local-env --cl-version 2015 -ccbin "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin"  -I"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v8.0\include" -I"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v8.0\include"  -G   --keep-dir Debug -maxrregcount=0  --machine 32 --compile -cudart static  -g   -DWIN32 -D_DEBUG -D_CONSOLE -D_MBCS -Xcompiler "/EHsc /W3 /nologo /Od /FS /Zi /RTC1 /MDd " -o Debug\main.cu.obj "C:\Users\nmazidi\Documents\GaussianBlur-CUDA-MPI\CUDA\GaussianBlur-CUDA\GaussianBlur-CUDA\main.cu" 
+CUDACOMPILE : nvcc warning : The 'compute_20', 'sm_20', and 'sm_21' architectures are deprecated, and may be removed in a future release (Use -Wno-deprecated-gpu-targets to suppress warning).
+  main.cu
+  GaussianBlur-CUDA.vcxproj -> C:\Users\nmazidi\Documents\GaussianBlur-CUDA-MPI\CUDA\GaussianBlur-CUDA\Debug\GaussianBlur-CUDA.exe
+  GaussianBlur-CUDA.vcxproj -> C:\Users\nmazidi\Documents\GaussianBlur-CUDA-MPI\CUDA\GaussianBlur-CUDA\Debug\GaussianBlur-CUDA.pdb (Full PDB)
+  copy "C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v8.0\bin\cudart*.dll" "C:\Users\nmazidi\Documents\GaussianBlur-CUDA-MPI\CUDA\GaussianBlur-CUDA\Debug\"
+  C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v8.0\bin\cudart32_80.dll
+  C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v8.0\bin\cudart64_80.dll
+          2 file(s) copied.
+  C:\Users\nmazidi\Documents\GaussianBlur-CUDA-MPI\CUDA\GaussianBlur-CUDA\GaussianBlur-CUDA\libjpeg-9.dll
+  C:\Users\nmazidi\Documents\GaussianBlur-CUDA-MPI\CUDA\GaussianBlur-CUDA\GaussianBlur-CUDA\SDL2.dll
+  C:\Users\nmazidi\Documents\GaussianBlur-CUDA-MPI\CUDA\GaussianBlur-CUDA\GaussianBlur-CUDA\SDL2_image.dll
+          3 file(s) copied.
+  C:\Users\nmazidi\Documents\GaussianBlur-CUDA-MPI\CUDA\GaussianBlur-CUDA\GaussianBlur-CUDA\*.jpg 
+  The system cannot find the file specified.
+          0 file(s) copied.
+C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\V140\Microsoft.CppCommon.targets(133,5): error MSB3073: The command "echo copy "C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v8.0\bin\cudart*.dll" "C:\Users\nmazidi\Documents\GaussianBlur-CUDA-MPI\CUDA\GaussianBlur-CUDA\Debug\"
+C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\V140\Microsoft.CppCommon.targets(133,5): error MSB3073: copy "C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v8.0\bin\cudart*.dll" "C:\Users\nmazidi\Documents\GaussianBlur-CUDA-MPI\CUDA\GaussianBlur-CUDA\Debug\"
+C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\V140\Microsoft.CppCommon.targets(133,5): error MSB3073: copy "C:\Users\nmazidi\Documents\GaussianBlur-CUDA-MPI\CUDA\GaussianBlur-CUDA\GaussianBlur-CUDA\*.dll" "C:\Users\nmazidi\Documents\GaussianBlur-CUDA-MPI\CUDA\GaussianBlur-CUDA\Debug\"
+C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\V140\Microsoft.CppCommon.targets(133,5): error MSB3073: copy "C:\Users\nmazidi\Documents\GaussianBlur-CUDA-MPI\CUDA\GaussianBlur-CUDA\GaussianBlur-CUDA\*.jpg" "C:\Users\nmazidi\Documents\GaussianBlur-CUDA-MPI\CUDA\GaussianBlur-CUDA\Debug\
+C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\V140\Microsoft.CppCommon.targets(133,5): error MSB3073: :VCEnd" exited with code 1.

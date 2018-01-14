@@ -22,16 +22,13 @@
     <CudaCompile Include="main.cu" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="ClassDiagram.cd" />
-  </ItemGroup>
-  <ItemGroup>
     <ClCompile Include="lodepng.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="lodepng.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{6C654A27-7F3E-42FD-AAE5-79C60288621F}</ProjectGuid>
+    <ProjectGuid>{6E771F37-ECC8-481F-B265-F6CD19533B1E}</ProjectGuid>
     <RootNamespace>GaussianBlur_CUDA</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -80,8 +77,6 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>C:\Users\nmazidi\Desktop\jpeg-9b;C:\Users\nmazidi\Documents\GaussianBlur-CUDA-MPI\CUDA\GaussianBlur-CUDA\GaussianBlur-CUDA\SDL2_image-2.0.2\include;C:\Users\nmazidi\Documents\GaussianBlur-CUDA-MPI\CUDA\GaussianBlur-CUDA\GaussianBlur-CUDA\SDL2-2.0.7\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Users\nmazidi\Documents\GaussianBlur-CUDA-MPI\CUDA\GaussianBlur-CUDA\GaussianBlur-CUDA\SDL2_image-2.0.2\lib\x64;C:\Users\nmazidi\Documents\GaussianBlur-CUDA-MPI\CUDA\GaussianBlur-CUDA\GaussianBlur-CUDA\SDL2-2.0.7\lib\x64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
@@ -95,13 +90,11 @@
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
-      <AdditionalDependencies>cudart.lib;kernel32.lib;user32.lib;SDL2.lib;SDL2main.lib;SDL2_image.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>cudart.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>echo copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"
-copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"
-copy "$(ProjectDir)*.dll" "$(OutDir)"
-copy "$(ProjectDir)*.jpg" "$(OutDir)</Command>
+copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">

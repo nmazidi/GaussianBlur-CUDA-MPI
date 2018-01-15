@@ -6,16 +6,24 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 
-const int ker_x_dim = 5;
-const int ker_y_dim = 5;
+const int ker_x_dim = 3;
+const int ker_y_dim = 3;
 
 void getGaussianKernel(double (&kernel)[ker_x_dim][ker_y_dim], double sigma) {
 	//printf("%f, ", kernel[0][0]);
 	// generate gaussian kernel values
-	for (int i = 0; i < ker_x_dim; i++) {
-		for (int j = 0; j < ker_y_dim; j++) {
-			double temp = exp(-((i*i) + (j*j) / (2 * (sigma*sigma))));
-			kernel[i][j] = temp / (2 * M_PI*(sigma*sigma));
+	double temp, sum = 0.0;
+	for (int i = -ker_x_dim; i <= ker_x_dim; i++) {
+		for (int j = -ker_y_dim; j <= ker_y_dim; j++) {
+			temp = exp(-((i*i) + (j*j)) / (2 * (sigma*sigma)));
+			kernel[i][j] = temp / (2*M_PI*sigma*sigma);
+			sum += kernel[i][j];
+			//printf("[%d][%d] = %f, ", i, j, kernel[i][j]);
+		}
+	}
+	for (int i = -ker_x_dim; i <= ker_x_dim; i++) {
+		for (int j = -ker_y_dim; j <= ker_y_dim; j++) {
+			kernel[i][j] /= sum;
 			printf("[%d][%d] = %f, ", i, j, kernel[i][j]);
 		}
 	}
@@ -29,7 +37,7 @@ int main(int argc, char** argv) {
 
 	//declare 2d kernel array
 	double gaussian_kernel[ker_x_dim][ker_y_dim];
-	getGaussianKernel(gaussian_kernel, 2);
+	getGaussianKernel(gaussian_kernel, 10);
 
 	std::vector<unsigned char> img_vect;
 	unsigned int width, height;

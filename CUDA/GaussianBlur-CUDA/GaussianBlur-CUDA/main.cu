@@ -1,3 +1,5 @@
+#include "cuda_runtime.h"
+#include "device_launch_parameters.h"
 #define _USE_MATH_DEFINES
 #include <math.h>
 #include <stdio.h>
@@ -24,8 +26,15 @@ void getGaussianKernel() {
 	}
 }
 
-void runFilter(int x_idx, int y_idx) {
+__global__ void runFilter(float *input, float *output) {
+	int row = blockIdx.y * blockDim.y + threadIdx.y;
+	int col = blockIdx.x * blockDim.x + threadIdx.x;
 
+	for (int i = -ker_x_dim; i < ker_x_dim; ++i) {
+		for (int j = -ker_y_dim; j < ker_y_dim; ++j) {
+
+		}
+	}
 }
 
 int main() {
@@ -56,7 +65,11 @@ int main() {
 	}
 	//printf("%d, %d, %d\n", input[0], input[1], input[2]);
 
+	dim3 blockDim(16, 16, 1);
+	dim3 gridDim(width / blockDim.x + 1, height / blockDim.y + 1);
 
+	runFilter << <gridDim, blockDim >> > (input, output);
+	
 
 	// Prepare data for output
 	/*std::vector<unsigned char> out_image;

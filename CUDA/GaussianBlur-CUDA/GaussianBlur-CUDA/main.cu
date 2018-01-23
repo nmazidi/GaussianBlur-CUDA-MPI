@@ -44,13 +44,17 @@ __host__ __device__ int get1dIndex(int width, int height, int x, int y)
 __global__ void runFilter(unsigned char* input, unsigned char* output, int width, int height) {
 	int row = blockIdx.y * blockDim.y + threadIdx.y;
 	int col = blockIdx.x * blockDim.x + threadIdx.x;
-	float r, g, b = 0;
+	float new_val = 0.0f;
 	int count = 0;
+	int r_i, r_j = 0;
 	if (row < width && col < height) {
 		for (int i = -ker_x_dim; i < ker_x_dim; i++) {
+			r_i = i + ker_x_dim;
 			for (int j = -ker_y_dim; j < ker_y_dim; j++) {
+				r_j = j + ker_y_dim;
 				int idx = get1dIndex(width, height, row + i, col + j);
-				
+
+				new_val += d_kernel[r_i*ker_y_dim + r_j] * input[idx];
 			}
 		}
 	
@@ -59,8 +63,6 @@ __global__ void runFilter(unsigned char* input, unsigned char* output, int width
 			
 		}
 	}
-
-	printf("%f,%f,%f\n", r,g,b);
 
 }
 
@@ -74,7 +76,7 @@ void convolveImage(float* input, float* output, int width, int height)
 	cudaMemcpy(d_input, input, width*height * sizeof(double), cudaMemcpyHostToDevice);
 
 	dim3 blockDim(25, 25, 1);
-	dim3 gridDim((unsigned int) ceil((double)(width*height*3/blockDim.x)), 1, 1);
+	dim3 gridDim(width / (blockDim.x) + 1, height / (blockDim.y) + 1);
 	printf("height: %d, width: %d", height, width);
 
 	runFilter << <gridDim, blockDim >> >(d_input, d_output, width, height);
@@ -102,17 +104,25 @@ int main(int argc, int** argv)
 		printf("decoder error: %d, %s", error, lodepng_error_text(error));
 	}
 	int image_size = width*height; 
+	float* temp;
 	float* input;
 	float* output;
-	cudaMallocHost(&input, (image_size*3) * sizeof(float));
-	cudaMallocHost(&output, (image_size*3) * sizeof(float));
+	cudaMallocHost(&temp, (image_size*3) * sizeof(float));
+	cudaMallocHost(&input, (image_size) * sizeof(float));
+	cudaMallocHost(&output, (image_size) * sizeof(float));
 	int count = 0;
 	// getting rid of the apha channel as it is not needed
 	for (int i = 0; i < img_vect.size(); ++i) {
 		if ((i + 1) % 4 != 0) {
-			input[count] = img_vect.at(i);
+			temp[count] = img_vect.at(i);
 			count++;
 		}
+	}
+	for (int i = 0; i < image_size; i++) {
+		input[i] = (
+			temp[i * 3 + 0] +
+			temp[i * 3 + 1] +
+			temp[i * 3 + 2])/3;
 	}
 
 	clock_t tStart = clock();
@@ -122,12 +132,12 @@ int main(int argc, int** argv)
 	printf("Convolution took %fms.\n", ms);
 
 	std::vector<unsigned char> out_image;
-	unsigned char temp;
-	for (int i = 0; i < image_size * 3; i++) {
+	for (int i = 0; i < image_size; i++) {
 		out_image.push_back(input[i]);
-		if ((i + 1) % 3 == 0) {
-			out_image.push_back(255);
-		}
+		out_image.push_back(input[i]);
+		out_image.push_back(input[i]);
+		out_image.push_back(255);
+		
 	}
 	error = lodepng::encode(output_path, out_image, width, height);
 

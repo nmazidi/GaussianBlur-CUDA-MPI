@@ -9,7 +9,8 @@ const int ker_x_dim = 3;
 const int ker_y_dim = 3;
 const double sigma = 1.0;
 
-double *kernel = new double[(ker_x_dim * 2)*(ker_y_dim * 2)];
+double *h_kernel = new double[(ker_x_dim * 2)*(ker_y_dim * 2)];
+__constant__ double *d_kernel = new double[(ker_x_dim * 2)*(ker_y_dim * 2)];
 
 void getGaussianKernel() {
 	// generate gaussian kernel values
@@ -20,19 +21,26 @@ void getGaussianKernel() {
 		for (int j = -ker_y_dim; j <= ker_y_dim; j++) {
 			r_j = j + ker_y_dim;
 			temp = exp(-((i*i) + (j*j)) / (2 * (sigma*sigma)));
-			kernel[r_i*ker_y_dim+r_j] = temp / (2*M_PI*sigma*sigma);
-			printf("[%d][%d] = %f, ", i, j, kernel[r_i*ker_y_dim+r_j]);
+			h_kernel[r_i*ker_y_dim+r_j] = temp / (2*M_PI*sigma*sigma);
+			printf("[%d][%d] = %f, ", i, j, h_kernel[r_i*ker_y_dim+r_j]);
 		}
 	}
 }
 
-__global__ void runFilter(float *input, float *output) {
+__global__ void runFilter(unsigned char* input, unsigned char* output, int width, int height) {
 	int row = blockIdx.y * blockDim.y + threadIdx.y;
 	int col = blockIdx.x * blockDim.x + threadIdx.x;
-
+	const unsigned int offset = blockIdx.x*blockDim.x + threadIdx.x;
+	int x = offset % width;
+	int y = (offset - x) / width;
+	float r, g, b = 0;
+	int count = 0;
 	for (int i = -ker_x_dim; i < ker_x_dim; ++i) {
 		for (int j = -ker_y_dim; j < ker_y_dim; ++j) {
-
+			if ((x + i) >= 0 && (x + i) < width && (y + j) >= 0 && (y + j) < height) {
+				const int idx = (offset + i + j * width) * 3;
+				r += d_kernel[]
+			}
 		}
 	}
 }
@@ -59,16 +67,22 @@ int main() {
 	for (int i = 0; i < img_vect.size(); ++i) {
 		if ((i + 1) % 4 != 0) {
 			input[count] = img_vect.at(i);
-			output[count] = img_vect.at(i);
+			output[count] = 255;
 			count++;
 		}
 	}
 	//printf("%d, %d, %d\n", input[0], input[1], input[2]);
+	unsigned char* d_inPixels;
+	unsigned char* d_outPixels;
+	cudaMalloc(&d_inPixels, width*height * sizeof(float));
+	cudaMalloc(&d_outPixels, width*height * sizeof(float));
+	cudaMemcpyToSymbol(d_kernel, h_kernel, sizeof(float));
+	cudaMemcpy(d_inPixels, input, width*height * sizeof(float), cudaMemcpyHostToDevice);
 
 	dim3 blockDim(16, 16, 1);
 	dim3 gridDim(width / blockDim.x + 1, height / blockDim.y + 1);
 
-	runFilter << <gridDim, blockDim >> > (input, output);
+	runFilter<<<gridDim, blockDim>>>(input, output, width, height);
 	
 
 	// Prepare data for output

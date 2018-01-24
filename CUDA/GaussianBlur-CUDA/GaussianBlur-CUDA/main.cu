@@ -17,7 +17,9 @@ const double sigma = 1.0;
 float h_kernel[(ker_x_dim * 2)*(ker_y_dim * 2)];
 __constant__ float d_kernel[(ker_x_dim * 2)*(ker_y_dim * 2)];
 
-////Function to generate gaussian kernel values and store in h_kernel array
+////
+// Function to generate gaussian kernel values and store in h_kernel array
+////
 void getGaussianKernel() 
 {
 	double temp = 0.0;
@@ -32,7 +34,11 @@ void getGaussianKernel()
 	}
 	printf("Kernel generated successfully\n");
 }
-////Simple function to generate 1 dimentional index from an x and y value pair
+////
+// Simple function to generate 1 dimentional index from an x and y value pair
+// width, height: image width and height in pixels
+// x, y: x and y values of the index 
+////
 __host__ __device__ int get1dIndex(int width, int height, int x, int y)
 {
 	if (x < 0) x = 0;

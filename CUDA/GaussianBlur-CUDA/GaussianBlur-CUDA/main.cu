@@ -47,17 +47,17 @@ __global__ void runFilter(float* input, float* output, int width, int height) {
 	float new_val = 0.0f;
 	int count = 0;
 	int r_i, r_j = 0;
-	if (row < width && col < height) {
+	if (col < width && row < height) {
 		for (int i = -ker_x_dim; i < ker_x_dim; i++) {
 			r_i = i + ker_x_dim;
 			for (int j = -ker_y_dim; j < ker_y_dim; j++) {
 				r_j = j + ker_y_dim;
-				int idx = get1dIndex(width, height, row + i, col + j);
+				int idx = get1dIndex(width, height, col + i, row + j);
 
 				new_val += d_kernel[r_i*ker_y_dim + r_j] * input[idx];
 			}
 		}
-		output[get1dIndex(width, height, row, col)] = new_val;
+		output[get1dIndex(width, height, col, row)] = new_val;
 	}
 }
 void convolveImage(float* input, float* output, int width, int height) 

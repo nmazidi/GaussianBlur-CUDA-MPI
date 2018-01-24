@@ -14,8 +14,6 @@ const double sigma = 1.0;
 //declare kernel array (1d instead of 2 for efficiency)
 float kernel[(ker_x_dim * 2)*(ker_y_dim * 2)];
 
-
-
 ////
 // Function to generate gaussian kernel values and store in h_kernel array
 ////
@@ -46,8 +44,6 @@ int get1dIndex(int width, int height, int x, int y)
 	if (y >= height) y = height - 1;
 	return y*width + x;
 }
-
-
 int main(int argc, char **argv) {
 	// declare image paths 
 	const char* image_path = "image.png";
@@ -55,6 +51,9 @@ int main(int argc, char **argv) {
 	float* temp;
 	float* input;
 	float* output;
+	float** split_input;
+	int image_size = 0;
+	float buf;
 	std::vector<unsigned char> img_vect;
 	unsigned int width, height;
 	int rank, size, next, prev;
@@ -64,7 +63,7 @@ int main(int argc, char **argv) {
 	MPI_Comm_size(MPI_COMM_WORLD, &size);
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-	if (size < 0) {
+	if (size < 2) {
 		if (rank == 0) printf("ERROR: size = %d", size);
 		MPI_Finalize();
 		exit(-1);
@@ -79,18 +78,22 @@ int main(int argc, char **argv) {
 		prev = MPI_PROC_NULL;
 	}
 	if (rank == 0) {
-		printf("test");
 		// import image into img_vect
 		unsigned error = lodepng::decode(img_vect, width, height, image_path);
 		if (error) {
 			// if there's an error, display it
 			printf("decoder error: %d, %s", error, lodepng_error_text(error));
 		}
-		int image_size = width*height;
+		image_size = width*height;
+		getGaussianKernel();
+	}
+	MPI_Bcast(&image_size, 1, MPI_INT, 0, MPI_COMM_WORLD);
+	input = (float*)malloc((image_size) * sizeof(float));
+	if (rank == 0) {
 		// allocate memory on the host for the image data
 		temp = (float*)malloc((image_size * 3) * sizeof(float));
-		input = (float*)malloc((image_size) * sizeof(float));
 		output = (float*)malloc((image_size) * sizeof(float));
+		
 		int count = 0;
 		// getting rid of the apha channel as it is not needed
 		for (int i = 0; i < img_vect.size(); ++i) {
@@ -107,8 +110,13 @@ int main(int argc, char **argv) {
 				temp[i * 3 + 2]) / 3;
 		}
 		printf("Processing %d x %d image\n", width, height);
-		
 	}
+	float* portion = (float*)malloc((image_size / size) * sizeof(float));
+	MPI_Scatter(input, image_size / size, MPI_FLOAT, portion, image_size / size, MPI_FLOAT, 0, MPI_COMM_WORLD);
+	printf("process %d: %f\n", rank, portion[65535]);
+
+
+
 	MPI_Finalize();
 	
 }

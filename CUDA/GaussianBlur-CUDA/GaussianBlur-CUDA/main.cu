@@ -9,8 +9,8 @@
 #include "lodepng.h"
 
 //kernel dimentions x and y
-const int ker_x_dim = 5;
-const int ker_y_dim = 5;
+const int ker_x_dim = 3;
+const int ker_y_dim = 3;
 //sigma value for gaussian function
 const double sigma = 1.0;
 //declare kernel array (1d instead of 2 for efficiency)

@@ -7,10 +7,10 @@
 #include "lodepng.h"
 
 //kernel dimentions x and y
-const int ker_x_dim = 5;
-const int ker_y_dim = 5;
+const int ker_x_dim = 3;
+const int ker_y_dim = 3;
 //sigma value for gaussian function
-const double sigma = 1.0;
+const double sigma = 10.0;
 //declare kernel array (1d instead of 2 for efficiency)
 float kernel[(ker_x_dim * 2)*(ker_y_dim * 2)];
 
@@ -43,6 +43,33 @@ int get1dIndex(int width, int height, int x, int y)
 	if (y < 0) y = 0;
 	if (y >= height) y = height - 1;
 	return y*width + x;
+}
+void runFilter(float* input, float* output, int width, int height) {
+	float new_val = 0.0f;
+	int r_i, r_j = 0;
+	for (int c = 0; c < (width*height); c++) {
+		if ((c / height) < width && (c / width) < height) {
+			// run through the kernel matrix
+			for (int i = -ker_x_dim; i < ker_x_dim; i++) {
+				// get real kernel index 
+				r_i = i + ker_x_dim;
+				for (int j = -ker_y_dim; j < ker_y_dim; j++) {
+					r_j = j + ker_y_dim;
+					// get index image index
+					int idx = get1dIndex(width, height, (c / height) + i, (c / width) + j);
+					// work out new value by multiplying kernel value by pixel value
+					new_val += kernel[r_i*ker_y_dim + r_j] * input[idx];
+					//printf("%f\n", new_val);
+				}
+			}
+			// set new values to output array
+		}
+		if (c == 0) {
+			printf("[%f]", new_val);
+		}
+		output[c] = new_val;
+	}
+	
 }
 int main(int argc, char **argv) {
 	// declare image paths 
@@ -87,12 +114,15 @@ int main(int argc, char **argv) {
 		image_size = width*height;
 		getGaussianKernel();
 	}
+	MPI_Bcast(&width, 1, MPI_INT, 0, MPI_COMM_WORLD);
+	MPI_Bcast(&height, 1, MPI_INT, 0, MPI_COMM_WORLD);
 	MPI_Bcast(&image_size, 1, MPI_INT, 0, MPI_COMM_WORLD);
+	MPI_Bcast(&kernel, 100, MPI_INT, 0, MPI_COMM_WORLD);
 	input = (float*)malloc((image_size) * sizeof(float));
+	output = (float*)malloc((image_size) * sizeof(float));
 	if (rank == 0) {
 		// allocate memory on the host for the image data
 		temp = (float*)malloc((image_size * 3) * sizeof(float));
-		output = (float*)malloc((image_size) * sizeof(float));
 		
 		int count = 0;
 		// getting rid of the apha channel as it is not needed
@@ -112,11 +142,37 @@ int main(int argc, char **argv) {
 		printf("Processing %d x %d image\n", width, height);
 	}
 	float* portion = (float*)malloc((image_size / size) * sizeof(float));
+	float* portion_output = (float*)malloc((image_size / size) * sizeof(float));
 	MPI_Scatter(input, image_size / size, MPI_FLOAT, portion, image_size / size, MPI_FLOAT, 0, MPI_COMM_WORLD);
 	printf("process %d: %f\n", rank, portion[65535]);
 
+	runFilter(portion, portion_output, width, height / size);
 
+	MPI_Gather(portion, image_size / size, MPI_FLOAT, output, image_size / size, MPI_FLOAT, 0, MPI_COMM_WORLD);
 
+	if (rank == 0) {
+		printf("%f\n", portion[0]);
+		printf("%f\n", output[0]);
+		printf("%f\n", input[0]);
+		// image vector for lodepng output
+		std::vector<unsigned char> out_image;
+		for (int i = 0; i < image_size; i++) {
+			out_image.push_back(output[i]);
+			out_image.push_back(output[i]);
+			out_image.push_back(output[i]);
+			out_image.push_back(255);
+		}
+		// output image vector using lodepng
+		unsigned error = lodepng::encode(output_path, out_image, width, height);
+		if (error) {
+			//if there's an error, display it
+			printf("lodepng error: %s\n", lodepng_error_text(error));
+		}
+		else {
+			printf("output image generated: %s\n", output_path);
+		}
+	}
+	
 	MPI_Finalize();
 	
 }

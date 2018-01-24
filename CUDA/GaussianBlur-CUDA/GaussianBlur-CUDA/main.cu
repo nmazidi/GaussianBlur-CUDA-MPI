@@ -7,14 +7,14 @@
 #include <memory.h>
 #include <time.h>
 #include "lodepng.h"
+#undef main
 
-
-const int ker_x_dim = 1;
-const int ker_y_dim = 1;
+const int ker_x_dim = 3;
+const int ker_y_dim = 3;
 const double sigma = 1.0;
 //double *kernel = new double[(ker_x_dim * 2)*(ker_y_dim * 2)];
-double h_kernel[(ker_x_dim * 2)*(ker_y_dim * 2)];
-__constant__ double d_kernel[(ker_x_dim * 2)*(ker_y_dim * 2)];
+float h_kernel[(ker_x_dim * 2)*(ker_y_dim * 2)];
+__constant__ float d_kernel[(ker_x_dim * 2)*(ker_y_dim * 2)];
 
 void getGaussianKernel() 
 {
@@ -41,7 +41,7 @@ __host__ __device__ int get1dIndex(int width, int height, int x, int y)
 	return y*width + x;
 }
 
-__global__ void runFilter(unsigned char* input, unsigned char* output, int width, int height) {
+__global__ void runFilter(float* input, float* output, int width, int height) {
 	int row = blockIdx.y * blockDim.y + threadIdx.y;
 	int col = blockIdx.x * blockDim.x + threadIdx.x;
 	float new_val = 0.0f;
@@ -57,23 +57,17 @@ __global__ void runFilter(unsigned char* input, unsigned char* output, int width
 				new_val += d_kernel[r_i*ker_y_dim + r_j] * input[idx];
 			}
 		}
-	
-		float r, g, b = 0.0f;
-		for (int i = 0; i < ker_x_dim; i++) {
-			
-		}
+		output[get1dIndex(width, height, row, col)] = new_val;
 	}
-
 }
-
 void convolveImage(float* input, float* output, int width, int height) 
 {
-	unsigned char* d_input;
-	unsigned char* d_output;
+	float* d_input;
+	float* d_output;
 	cudaMalloc(&d_input, width*height * sizeof(float));
 	cudaMalloc(&d_output, width*height * sizeof(float));
 	cudaMemcpyToSymbol(d_kernel, h_kernel, sizeof(h_kernel));
-	cudaMemcpy(d_input, input, width*height * sizeof(double), cudaMemcpyHostToDevice);
+	cudaMemcpy(d_input, input, width*height * sizeof(float), cudaMemcpyHostToDevice);
 
 	dim3 blockDim(25, 25, 1);
 	dim3 gridDim(width / (blockDim.x) + 1, height / (blockDim.y) + 1);
@@ -86,6 +80,11 @@ void convolveImage(float* input, float* output, int width, int height)
 
 	}
 	cudaDeviceSynchronize();
+	cudaMemcpy(output, d_output, width*height * sizeof(float), cudaMemcpyDeviceToHost);
+	cudaStatus = cudaGetLastError();
+	if (cudaStatus != cudaSuccess) {
+		printf("Error running kernel: %s\n", cudaGetErrorString(cudaStatus));
+	}
 }
 
 int main(int argc, int** argv) 
@@ -130,12 +129,14 @@ int main(int argc, int** argv)
 	clock_t tEnd = clock();
 	float ms = 1000.0f * (tEnd - tStart) / CLOCKS_PER_SEC;
 	printf("Convolution took %fms.\n", ms);
+	//printf("%f * %f = %f", input[0], input[])
+	printf("output: %f", output[0]);
 
 	std::vector<unsigned char> out_image;
 	for (int i = 0; i < image_size; i++) {
-		out_image.push_back(input[i]);
-		out_image.push_back(input[i]);
-		out_image.push_back(input[i]);
+		out_image.push_back(output[i]);
+		out_image.push_back(output[i]);
+		out_image.push_back(output[i]);
 		out_image.push_back(255);
 		
 	}
@@ -143,7 +144,7 @@ int main(int argc, int** argv)
 
 	//if there's an error, display it
 	if (error) {
-		printf("%s", lodepng_error_text(error));
+		printf("lodepng error: %s", lodepng_error_text(error));
 	}
 	
 }

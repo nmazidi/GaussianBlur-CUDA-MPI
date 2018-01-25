@@ -9,10 +9,10 @@
 #include "lodepng.h"
 
 //kernel dimentions x and y
-const int ker_x_dim = 3;
-const int ker_y_dim = 3;
+const int ker_x_dim = 7;
+const int ker_y_dim = 7;
 //sigma value for gaussian function
-const double sigma = 1.0;
+const double sigma = 3.0;
 //declare kernel array (1d instead of 2 for efficiency)
 float h_kernel[(ker_x_dim * 2)*(ker_y_dim * 2)];
 __constant__ float d_kernel[(ker_x_dim * 2)*(ker_y_dim * 2)];
@@ -29,7 +29,7 @@ void getGaussianKernel()
 		for (int j = -ker_y_dim; j <= ker_y_dim; j++) {
 			r_j = j + ker_y_dim;
 			temp = exp(-((i*i) + (j*j)) / (2 * (sigma*sigma)));
-			h_kernel[r_i*ker_y_dim+r_j] = temp / (2*M_PI*sigma*sigma);
+			h_kernel[r_i*(ker_y_dim*2)+r_j] = temp / (2*M_PI*sigma*sigma);
 		}
 	}
 	printf("Kernel generated successfully\n");
@@ -70,7 +70,7 @@ __global__ void runFilter(float* input, float* output, int width, int height) {
 				// get index image index
 				int idx = get1dIndex(width, height, col + i, row + j);
 				// work out new value by multiplying kernel value by pixel value
-				new_val += d_kernel[r_i*ker_y_dim + r_j] * input[idx];
+				new_val += d_kernel[r_i*(ker_y_dim * 2) + r_j] * input[idx];
 			}
 		}
 		// set new values to output array
@@ -95,7 +95,7 @@ void convolveImage(float* input, float* output, int width, int height)
 	cudaMemcpy(d_input, input, width*height * sizeof(float), cudaMemcpyHostToDevice);
 
 	// declare block and grid dimentions
-	dim3 blockDim(25, 25, 1);
+	dim3 blockDim(32, 32, 1);
 	dim3 gridDim(width / (blockDim.x) + 1, height / (blockDim.y) + 1);
 	printf("Image height: %d, width: %d\n", height, width);
 	// run the CUDA kernel 

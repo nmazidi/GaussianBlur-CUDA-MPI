@@ -7,8 +7,8 @@
 #include "lodepng.h"
 
 //kernel dimentions x and y
-const int ker_x_dim = 3;
-const int ker_y_dim = 3;
+const int ker_x_dim = 7;
+const int ker_y_dim = 7;
 //sigma value for gaussian function
 const double sigma = 1.0;
 //declare kernel array (1d instead of 2 for efficiency)
@@ -26,7 +26,7 @@ void getGaussianKernel()
 		for (int j = -ker_y_dim; j <= ker_y_dim; j++) {
 			r_j = j + ker_y_dim;
 			temp = exp(-((i*i) + (j*j)) / (2 * (sigma*sigma)));
-			kernel[r_i*ker_y_dim + r_j] = temp / (2 * M_PI*sigma*sigma);
+			kernel[r_i*(ker_y_dim*2) + r_j] = temp / (2 * M_PI*sigma*sigma);
 		}
 	}
 	printf("Kernel generated successfully\n");
@@ -58,7 +58,7 @@ void runFilter(float* input, float* output, int width, int height) {
 					// get index image index
 					int idx = get1dIndex(width, height, (c / width) + i, (c % width) + j);
 					// work out new value by multiplying kernel value by pixel value
-					new_val += kernel[r_i*ker_y_dim + r_j] * input[idx];
+					new_val += kernel[r_i*(ker_y_dim * 2) + r_j] * input[idx];
 					//printf("%f\n", new_val);
 				}
 			}

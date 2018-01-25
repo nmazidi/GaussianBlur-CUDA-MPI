@@ -44,6 +44,12 @@ int get1dIndex(int width, int height, int x, int y)
 	if (y >= height) y = height - 1;
 	return y*width + x;
 }
+////
+// Function that runs the convolution on the image, by multiplying the kernel over each pixel
+// input: pointer to the array that stores the image pixel RGB values on the device
+// output: pointer to the empty array that will store the pixel RGB values in the device 
+// width, height: image width and height in pixels
+////
 void runFilter(float* input, float* output, int width, int height) {
 	float new_val = 0.0f;
 	int r_i, r_j = 0;
@@ -83,11 +89,12 @@ int main(int argc, char **argv) {
 	MPI_Status status;
 
 	clock_t tStart;
-
+	// initialize MPI and declare size and rank
 	MPI_Init(&argc, &argv);
 	MPI_Comm_size(MPI_COMM_WORLD, &size);
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
+	// if number of processes less than 1, exit
 	if (size < 1) {
 		if (rank == 0) printf("ERROR: size = %d", size);
 		MPI_Finalize();
@@ -102,6 +109,7 @@ int main(int argc, char **argv) {
 	if (prev < 0) {
 		prev = MPI_PROC_NULL;
 	}
+	// if current process is 0
 	if (rank == 0) {
 		// import image into img_vect
 		unsigned error = lodepng::decode(img_vect, width, height, image_path);
@@ -110,16 +118,18 @@ int main(int argc, char **argv) {
 			printf("decoder error: %d, %s", error, lodepng_error_text(error));
 		}
 		image_size = width*height;
+		// run function that generates gaussian kernel
 		getGaussianKernel();
 	}
+	// broadcast veriables to all processes 
 	MPI_Bcast(&width, 1, MPI_INT, 0, MPI_COMM_WORLD);
 	MPI_Bcast(&height, 1, MPI_INT, 0, MPI_COMM_WORLD);
 	MPI_Bcast(&image_size, 1, MPI_INT, 0, MPI_COMM_WORLD);
 	MPI_Bcast(&kernel, 100, MPI_INT, 0, MPI_COMM_WORLD);
+	// allocate memory for arrays
 	input = (float*)malloc((image_size) * sizeof(float));
 	output = (float*)malloc((image_size) * sizeof(float));
 	if (rank == 0) {
-		// allocate memory on the host for the image data
 		temp = (float*)malloc((image_size * 3) * sizeof(float));
 		
 		int count = 0;
@@ -138,18 +148,26 @@ int main(int argc, char **argv) {
 				temp[i * 3 + 2]) / 3;
 		}
 		printf("Processing %d x %d image\n", width, height);
+		// start timer
 		tStart = clock();
 	}
+	// allocate memory for the portion input and output arrays for each process
 	float* portion = (float*)malloc((image_size / size) * sizeof(float));
 	float* portion_output = (float*)malloc((image_size / size) * sizeof(float));
-
+	
+	// divide the image array into the amount of threads running so that each thread gets an equal amount
 	MPI_Scatter(input, image_size / size, MPI_FLOAT, portion, image_size / size, MPI_FLOAT, 0, MPI_COMM_WORLD);
 	
+	// call function to connvolve each processes portion of the image
 	runFilter(portion, portion_output, width, height / size);
+	// wait for all processes to finish
 	MPI_Barrier(MPI_COMM_WORLD);
+	// send all portions back into on array on process 0
 	MPI_Gather(portion_output, image_size / size, MPI_FLOAT, output, image_size / size, MPI_FLOAT, 0, MPI_COMM_WORLD);
+	// wait for all processes
 	MPI_Barrier(MPI_COMM_WORLD);
 	if (rank == 0) {
+		// end timer
 		clock_t tEnd = clock();
 		// get time taken in milliseconds
 		float ms = 1000.0f * (tEnd - tStart) / CLOCKS_PER_SEC;

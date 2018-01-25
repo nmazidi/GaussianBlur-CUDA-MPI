@@ -108,6 +108,7 @@ void convolveImage(float* input, float* output, int width, int height)
 	cudaDeviceSynchronize();
 	// copy the output from the device to the host, ready for png output
 	cudaMemcpy(output, d_output, width*height * sizeof(float), cudaMemcpyDeviceToHost);
+	printf("%f", output[0]);
 	cudaStatus = cudaGetLastError();
 	if (cudaStatus != cudaSuccess) {
 		// if there's an error, display it

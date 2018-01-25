@@ -4,10 +4,10 @@
 CUDACOMPILE : nvcc warning : The 'compute_20', 'sm_20', and 'sm_21' architectures are deprecated, and may be removed in a future release (Use -Wno-deprecated-gpu-targets to suppress warning).
   main.cu
 C:/Users/nmazidi/Documents/GaussianBlur-CUDA-MPI/CUDA/GaussianBlur-CUDA/GaussianBlur-CUDA/main.cu(32): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-C:/Users/nmazidi/Documents/GaussianBlur-CUDA-MPI/CUDA/GaussianBlur-CUDA/GaussianBlur-CUDA/main.cu(145): warning C4018: '<': signed/unsigned mismatch
-C:/Users/nmazidi/Documents/GaussianBlur-CUDA-MPI/CUDA/GaussianBlur-CUDA/GaussianBlur-CUDA/main.cu(171): warning C4244: 'argument': conversion from 'float' to 'const unsigned char', possible loss of data
+C:/Users/nmazidi/Documents/GaussianBlur-CUDA-MPI/CUDA/GaussianBlur-CUDA/GaussianBlur-CUDA/main.cu(146): warning C4018: '<': signed/unsigned mismatch
 C:/Users/nmazidi/Documents/GaussianBlur-CUDA-MPI/CUDA/GaussianBlur-CUDA/GaussianBlur-CUDA/main.cu(172): warning C4244: 'argument': conversion from 'float' to 'const unsigned char', possible loss of data
 C:/Users/nmazidi/Documents/GaussianBlur-CUDA-MPI/CUDA/GaussianBlur-CUDA/GaussianBlur-CUDA/main.cu(173): warning C4244: 'argument': conversion from 'float' to 'const unsigned char', possible loss of data
+C:/Users/nmazidi/Documents/GaussianBlur-CUDA-MPI/CUDA/GaussianBlur-CUDA/GaussianBlur-CUDA/main.cu(174): warning C4244: 'argument': conversion from 'float' to 'const unsigned char', possible loss of data
   GaussianBlur-CUDA.vcxproj -> C:\Users\nmazidi\Documents\GaussianBlur-CUDA-MPI\CUDA\GaussianBlur-CUDA\Debug\GaussianBlur-CUDA.exe
   GaussianBlur-CUDA.vcxproj -> C:\Users\nmazidi\Documents\GaussianBlur-CUDA-MPI\CUDA\GaussianBlur-CUDA\Debug\GaussianBlur-CUDA.pdb (Full PDB)
   copy "C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v8.0\bin\cudart*.dll" "C:\Users\nmazidi\Documents\GaussianBlur-CUDA-MPI\CUDA\GaussianBlur-CUDA\Debug\"

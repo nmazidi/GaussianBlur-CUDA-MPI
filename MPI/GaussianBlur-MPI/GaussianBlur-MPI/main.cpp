@@ -10,7 +10,7 @@
 const int ker_x_dim = 3;
 const int ker_y_dim = 3;
 //sigma value for gaussian function
-const double sigma = 10.0;
+const double sigma = 1.0;
 //declare kernel array (1d instead of 2 for efficiency)
 float kernel[(ker_x_dim * 2)*(ker_y_dim * 2)];
 
@@ -56,20 +56,16 @@ void runFilter(float* input, float* output, int width, int height) {
 				for (int j = -ker_y_dim; j < ker_y_dim; j++) {
 					r_j = j + ker_y_dim;
 					// get index image index
-					int idx = get1dIndex(width, height, (c / height) + i, (c / width) + j);
+					int idx = get1dIndex(width, height, (c / width) + i, (c % width) + j);
 					// work out new value by multiplying kernel value by pixel value
 					new_val += kernel[r_i*ker_y_dim + r_j] * input[idx];
 					//printf("%f\n", new_val);
 				}
 			}
 			// set new values to output array
+			output[c] = new_val;
 		}
-		if (c == 0) {
-			printf("[%f]", new_val);
-		}
-		output[c] = new_val;
 	}
-	
 }
 int main(int argc, char **argv) {
 	// declare image paths 
@@ -86,11 +82,13 @@ int main(int argc, char **argv) {
 	int rank, size, next, prev;
 	MPI_Status status;
 
+	clock_t tStart;
+
 	MPI_Init(&argc, &argv);
 	MPI_Comm_size(MPI_COMM_WORLD, &size);
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-	if (size < 2) {
+	if (size < 1) {
 		if (rank == 0) printf("ERROR: size = %d", size);
 		MPI_Finalize();
 		exit(-1);
@@ -140,20 +138,22 @@ int main(int argc, char **argv) {
 				temp[i * 3 + 2]) / 3;
 		}
 		printf("Processing %d x %d image\n", width, height);
+		tStart = clock();
 	}
 	float* portion = (float*)malloc((image_size / size) * sizeof(float));
 	float* portion_output = (float*)malloc((image_size / size) * sizeof(float));
+
 	MPI_Scatter(input, image_size / size, MPI_FLOAT, portion, image_size / size, MPI_FLOAT, 0, MPI_COMM_WORLD);
-	printf("process %d: %f\n", rank, portion[65535]);
-
+	
 	runFilter(portion, portion_output, width, height / size);
-
-	MPI_Gather(portion, image_size / size, MPI_FLOAT, output, image_size / size, MPI_FLOAT, 0, MPI_COMM_WORLD);
-
+	MPI_Barrier(MPI_COMM_WORLD);
+	MPI_Gather(portion_output, image_size / size, MPI_FLOAT, output, image_size / size, MPI_FLOAT, 0, MPI_COMM_WORLD);
+	MPI_Barrier(MPI_COMM_WORLD);
 	if (rank == 0) {
-		printf("%f\n", portion[0]);
-		printf("%f\n", output[0]);
-		printf("%f\n", input[0]);
+		clock_t tEnd = clock();
+		// get time taken in milliseconds
+		float ms = 1000.0f * (tEnd - tStart) / CLOCKS_PER_SEC;
+		printf("Convolution took %fms.\n", ms);
 		// image vector for lodepng output
 		std::vector<unsigned char> out_image;
 		for (int i = 0; i < image_size; i++) {
@@ -163,6 +163,7 @@ int main(int argc, char **argv) {
 			out_image.push_back(255);
 		}
 		// output image vector using lodepng
+		
 		unsigned error = lodepng::encode(output_path, out_image, width, height);
 		if (error) {
 			//if there's an error, display it
@@ -172,7 +173,9 @@ int main(int argc, char **argv) {
 			printf("output image generated: %s\n", output_path);
 		}
 	}
-	
+	for (int i = 0; i < 36; i++) {
+		//printf("kernel %d: %f\n", i, kernel[i]);
+	}
 	MPI_Finalize();
 	
 }
